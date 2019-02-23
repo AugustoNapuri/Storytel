@@ -27,16 +27,31 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public Message create(Message message) {
+        validateMessage(message);
         message.setDateCreated(LocalDateTime.now());
-        return messageRepository.save(message);
+        Message newMessage = messageRepository.save(message);
+        newMessage.setOwner(true);
+        return newMessage;
+    }
+
+    private void validateMessage(Message message) throws IllegalArgumentException {
+        if (message.getUsername() == null) {
+            throw new IllegalArgumentException("Username cannot be null");
+        }
+        if(message.getText() == null || message.getText().isEmpty()) {
+            throw new IllegalArgumentException("Text cannot be null");
+        }
     }
 
     @Override
     public Message edit(Message message) throws NoSuchElementException, PermissionDeniedDataAccessException {
+        validateMessage(message);
         Message ownMessage = getUserMessage(message);
         ownMessage.setText(message.getText());
         ownMessage.setEdited(true);
-        return messageRepository.save(ownMessage);
+        ownMessage = messageRepository.save(ownMessage);
+        ownMessage.setOwner(true);
+        return ownMessage;
     }
 
     @Override

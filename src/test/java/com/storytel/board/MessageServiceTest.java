@@ -3,9 +3,14 @@ package com.storytel.board;
 import com.storytel.board.entities.Message;
 import com.storytel.board.repository.MessageRepository;
 import com.storytel.board.service.MessageService;
+import com.storytel.board.service.impl.MessageServiceImpl;
 import com.sun.media.sound.InvalidDataException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import static org.junit.Assert.*;
@@ -32,6 +37,35 @@ public class MessageServiceTest extends StorytelApplicationTests {
         assertEquals(newMessage.getUsername(), username);
         assertNotNull(newMessage.getId());
         assertNotNull(newMessage.getDateCreated());
+        System.out.println("#date" + newMessage.getDateCreated());
+        assertTrue(newMessage.isOwner());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void addMessage_withUsernameNull_throwException() {
+        Message message = MessageBuilder.normal()
+                .withUsername(null)
+                .build();
+
+        messageService.create(message);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void addMessage_withTextNull_throwException() {
+        Message message = MessageBuilder.normal()
+                .withText(null)
+                .build();
+
+        messageService.create(message);
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void addMessage_withTextEmpty_throwException() {
+        Message message = MessageBuilder.normal()
+                .withText("")
+                .build();
+
+        messageService.create(message);
     }
 
     @Test
@@ -106,11 +140,11 @@ public class MessageServiceTest extends StorytelApplicationTests {
         assertFalse(messageRepository.existsById(id));
         messageService.getUserMessage(message);
     }
-    
+
     @Test(expected = IllegalArgumentException.class)
     public void getUserMessage_withoutId_throwException() {
         Message message = MessageBuilder.normal().build();
-         messageService.getUserMessage(message);
+        messageService.getUserMessage(message);
     }
 
     @Test
@@ -128,6 +162,7 @@ public class MessageServiceTest extends StorytelApplicationTests {
         assertTrue(messageRepository.findById(id).get().getText().equals(text));
         assertTrue(messageEdited.getText().equals(text));
         assertTrue(messageEdited.isEdited());
+        assertTrue(messageEdited.isOwner());
     }
 
 }
